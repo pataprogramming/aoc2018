@@ -1,0 +1,34 @@
+:-module day1a.
+:-interface.
+:-import_module io.
+
+:-pred main(io::di, io::uo) is det.
+
+:-implementation.
+:-import_module int, list, string.
+
+% If we can't parse a line, it's a no-op identity
+:-pred to_int(string::in, int::out) is det.
+to_int(S, I) :-
+  if string.to_int(S, Res)
+  then I = Res
+  else I = 0.
+
+main -->
+  io.read_file_as_string(Res),
+  ( { Res = ok(String) },
+    { Lines = string.split_at_string("\n", string.strip(String)) },
+    { Stripped = list.map(string.strip, Lines) },
+    { Offsets = list.map(string.det_to_int, Stripped) },
+    { Result = list.foldl(int.plus, Offsets, 0) },
+    { string.int_to_string(Result, ResultString) },
+    print(ResultString),
+    nl ;
+    %print(string.join_list("'x'", Stripped));
+    { Res = error(_ , ErrorCode) },
+    { error_message(ErrorCode, ErrorMessage) },
+    stderr_stream(StdErr),
+    print(StdErr, "day1a: error reading input: "),
+    print(StdErr, ErrorMessage),
+    nl(StdErr)
+  ).
