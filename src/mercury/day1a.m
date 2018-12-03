@@ -5,14 +5,10 @@
 :-pred main(io::di, io::uo) is det.
 
 :-implementation.
-:-import_module int, list, string.
+:-import_module bool, int, list, set, string.
 
-% If we can't parse a line, it's a no-op identity
-:-pred to_int(string::in, int::out) is det.
-to_int(S, I) :-
-  if string.to_int(S, Res)
-  then I = Res
-  else I = 0.
+:-func single_pass(list.list(int)) = int.
+single_pass(Offsets) = list.foldl(int.plus, Offsets, 0).
 
 main -->
   io.read_file_as_string(Res),
@@ -20,11 +16,12 @@ main -->
     { Lines = string.split_at_string("\n", string.strip(String)) },
     { Stripped = list.map(string.strip, Lines) },
     { Offsets = list.map(string.det_to_int, Stripped) },
-    { Result = list.foldl(int.plus, Offsets, 0) },
+    %{ Result = list.foldl(int.plus, Offsets, 0) },
+    { Result = single_pass(Offsets) },
     { string.int_to_string(Result, ResultString) },
     print(ResultString),
-    nl ;
-    %print(string.join_list("'x'", Stripped));
+    nl
+    ;
     { Res = error(_ , ErrorCode) },
     { error_message(ErrorCode, ErrorMessage) },
     stderr_stream(StdErr),
