@@ -1,52 +1,8 @@
-(ns aoc2018.core
+(ns aoc2018.day2
   (:require [clojure.string :as string]
             [clojure.set :as set]
             [clojure.java.io :as io]
             [clojure.math.combinatorics :as combo]))
-
-(defn parse-drift [f]
-  (let [op-str  (subs f 0 1)
-        num-str (subs f 1)
-        op      (case op-str
-                  "+" +
-                  "-" -
-                  (throw (Exception. (str "unknown operation '" op-str "'") )))
-        num     (Integer/parseInt num-str)]
-    [op num]))
-
-(defn calibrate-frequency [start offsets]
-  (reduce (fn [acc offset]
-            (let [[op num] (parse-drift offset)]
-              (op acc num)))
-          start
-          offsets))
-
-(defn solve-day1-a []
-  (let [input (-> "resources/day1.txt"
-                  slurp
-                  (string/split #"\n"))]
-    (calibrate-frequency 0 input)))
-
-;; Answer: 459
-
-
-(defn stabilize-frequency [start offsets]
-  (reduce (fn [[acc seen?] offset]
-            (let [[op num] (parse-drift offset)
-                  freq     (op acc num)]
-              (if (seen? freq)
-                (reduced freq)
-                [freq (conj seen? freq)])))
-          [start (hash-set)]
-          (cycle offsets)))
-
-(defn solve-day1-b []
-  (let [input (-> "resources/day1.txt"
-                  slurp
-                  (string/split #"\n"))]
-    (stabilize-frequency 0 input)))
-
-;; Answer: 65474
 
 (defn cardinalities [st]
   (->> st frequencies vals set))
@@ -98,6 +54,3 @@
        remove-differing))
 
 ;; Answer: icxjvbrobtunlelzpdmfkahgs
-
-(defn day3-a-test-case
-  ["#1 @ 1,3: 4x4" "#2 @ 3,1: 4x4" "#3 @ 5,5: 2x2"])
