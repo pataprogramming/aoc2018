@@ -16,7 +16,6 @@ main -->
     { Lines = string.split_at_string("\n", string.strip(String)) },
     { Stripped = list.map(string.strip, Lines) },
     { Offsets = list.map(string.det_to_int, Stripped) },
-    %{ Result = list.foldl(int.plus, Offsets, 0) },
     { Result = single_pass(Offsets) },
     { string.int_to_string(Result, ResultString) },
     print(ResultString),

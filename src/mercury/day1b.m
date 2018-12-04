@@ -16,7 +16,7 @@ rotate_list(Input) = Output :-
 
 :-func calibrate(list.list(int), set.set(int), int) = int.
 calibrate(Offsets, Seen, Current) = Goal :-
-  %trace [ io(!IO) ] ( io.write_int(Current, !IO), io.nl(!IO) ),
+  % trace [ io(!IO) ] ( io.write_int(Current, !IO), io.nl(!IO) ),
   % trace [ io(!IO) ]
   % ( TraceList = list.map(string.int_to_string, set.to_sorted_list(Seen)),
   %   io.write_string(string.join_list(",", TraceList), !IO),
@@ -42,7 +42,6 @@ main -->
     { Lines = string.split_at_string("\n", string.strip(String)) },
     { Stripped = list.map(string.strip, Lines) },
     { Offsets = list.map(string.det_to_int, Stripped) },
-    %{ Result = list.foldl(int.plus, Offsets, 0) },
     { Result = first_repeated(Offsets) },
     { string.int_to_string(Result, ResultString) },
     print(ResultString),

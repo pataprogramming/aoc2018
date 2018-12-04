@@ -1,4 +1,4 @@
-(ns aoc2018.day2
+(ns aoc2018.day1
   (:require [clojure.string :as string]))
 
 (defn parse-drift [f]
@@ -18,10 +18,12 @@
           start
           offsets))
 
-(defn solve-day1-a []
-  (let [input (-> "resources/day1.txt"
+(def day1-input (-> "resources/day1.txt"
                   slurp
-                  (string/split #"\n"))]
+                  (string/split #"\n")))
+
+(defn solve-day1-a []
+  (let [input day1-input]
     (calibrate-frequency 0 input)))
 
 ;; Answer: 459
