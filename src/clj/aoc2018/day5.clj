@@ -7,20 +7,18 @@
 (def day5-test-case "dabAcCaCBAcCcaDA")
 
 (defn reactive? [a b]
-  (= 32 (math/abs (- (int a) (int b)))))
+  (and (not (nil? a)) (not (nil? b))
+       (= 32 (math/abs (- (int a) (int b))))))
 
-(defn trigger-polymer [p]
-  ;; Vector for `reacted` gives fast tail ops, list for `remaining` gives fast head ops
-  (loop [reacted [] remaining (seq p)]
-    (if (empty? remaining)
-      (string/join reacted)
-      (if (empty? reacted)
-        (recur (conj reacted (first remaining)) (rest remaining))
-        (let [left  (last reacted)
-              right (first remaining)]
-          (if (reactive? left right)
-            (recur (pop reacted) (rest remaining))
-            (recur (conj reacted (first remaining)) (rest remaining))))))))
+(defn trigger-polymer [polymer]
+  (->> polymer
+       (reduce (fn [reacted right]
+                 (let [left (last reacted)]
+                   (if (reactive? left right)
+                     (pop reacted)
+                     (conj reacted right))))
+               [])
+       string/join))
 
 (defn solve-day5-a []
   (-> (slurp "resources/day5.txt")

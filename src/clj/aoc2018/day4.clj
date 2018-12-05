@@ -27,6 +27,10 @@
       (string/split #"\n")
       sort))
 
+;; Given a log line, produces events like:
+;; {:begin <guard-id>}
+;; {:sleep <sleep-minute>}
+;; {:wake <wake-minute>}
 (defn parse-event [log-entry]
   (let [event-re #"(\d+)\] (?:(wakes up)|(falls asleep)|(?:Guard #(\d+) begins shift))"
         [_ minute wake sleep id :as all] (re-find event-re log-entry)]
@@ -35,6 +39,8 @@
       sleep {:sleep (Integer/parseInt minute)}
       :else {:begin (Integer/parseInt id)})))
 
+;; Given a sequence of events from (parse-event), produces unified events like
+;; {:id <guard-id> :sleep <sleep-miunte> :wake <wake-miunte> :duration minutes-asleep>}
 (defn coalesce-events [events]
   (->> events
        (reduce (fn [[acc id slept] {:keys [begin wake sleep]}]
@@ -49,6 +55,9 @@
                [[] nil nil])
        first))
 
+;; Given unified events from (coalesce-events), builds a nested map of guards like
+;; {<guard-id> {:id <guard-id> :total <overall-time-asleep>
+;;              :minutes [vector of minutes, one number per minute]}
 (defn analyze-guards [intervals]
   (->> intervals
        (reduce (fn [acc {:keys [id sleep wake duration]}]
@@ -58,12 +67,16 @@
                      (update-in [id :minutes] concat (range sleep wake))))
                {})))
 
+;; Calculates histogram of accumulated minutes in guard's :minutes key,
+;; stores result in guard's :frequencies key
 (defn analyze-minutes [guards]
   (->> guards
        (reduce (fn [acc [id {:keys [minutes] :as guard}]]
                  (assoc-in acc [id :frequencies] (frequencies minutes)))
-               guards)))
+               guards))) ;; Note that (reduce) starts from existing map of guards
 
+;; For each guard, pick the minute with the highest count in the histogram
+;; and store it in the :sleepiest-minutes key
 (defn pick-minute-per-guard [guards]
   (->> guards
        (reduce (fn [acc [id {:keys [frequencies]}]]
@@ -71,12 +84,8 @@
                            (key (apply max-key val frequencies))))
                guards)))
 
-(defn pick-minute-by-sleepiest-guard [guards]
-  (-> guards
-      vals
-      (->> (apply max-key :total))
-      (select-keys [:id :sleepiest-minute])))
-
+;; Starting with an unsplit, newline-separated string log messages,
+;; build all the analytical data structures
 (defn process-logs [raw-logs]
   (->> raw-logs
        organize-logs
@@ -86,11 +95,19 @@
        analyze-minutes
        pick-minute-per-guard))
 
+;; Looking across all guards, find the guard who spent the most time asleep,
+;; and then pick the minute that individual guard was asleep
+(defn pick-minute-by-sleepiest-guard [guards]
+  (-> guards
+      vals
+      (->> (apply max-key :total))
+      (select-keys [:id :sleepiest-minute])))
+
 (defn first-strategy [raw-logs]
   (->> raw-logs
        process-logs
        pick-minute-by-sleepiest-guard))
-
+;;
 (defn encode-answer [{:keys [id sleepiest-minute]}]
   (* id sleepiest-minute))
 
@@ -101,6 +118,8 @@
 
 ;; Ansewr: 102688
 
+;; Looking across all guards, find the guard that spent the most time
+;; asleep in any minute, and select that guard and minute.
 (defn pick-guard-by-sleepiest-minute [guards]
   (-> guards
       vals
