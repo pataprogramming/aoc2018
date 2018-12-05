@@ -10,15 +10,13 @@
   (and (not (nil? a)) (not (nil? b))
        (= 32 (math/abs (- (int a) (int b))))))
 
+(defn maybe-react [reacted unit]
+  (if (reactive? (last reacted) unit)
+    (pop reacted)
+    (conj reacted right)))
+
 (defn trigger-polymer [polymer]
-  (->> polymer
-       (reduce (fn [reacted right]
-                 (let [left (last reacted)]
-                   (if (reactive? left right)
-                     (pop reacted)
-                     (conj reacted right))))
-               [])
-       string/join))
+  (string/join (reduce maybe-react []  polymer)))
 
 (defn solve-day5-a []
   (-> (slurp "resources/day5.txt")
